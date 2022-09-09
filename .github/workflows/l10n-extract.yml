@@ -50,7 +50,7 @@ jobs:
           cd fxa-l10n
           if [[ $(git diff --exit-code) || $(git ls-files --other --exclude-standard) ]]
             # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
-            gh pr edit --add-reviewer mozilla/fxa-l10n
+            gh pr edit --add-reviewer bcolsson
           else
             echo "No changes found."
           fi
