@@ -53,7 +53,7 @@ jobs:
             # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
             cd ../fxa-code
             echo "Adding reviewer"
-            gh pr edit $PR_NUMBER --add-reviewer bcolsson
+            gh pr edit $PR_NUMBER --add-reviewer mozilla/fxa-l10n
           else
             echo "No changes found."
           fi
