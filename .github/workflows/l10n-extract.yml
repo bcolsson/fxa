@@ -24,7 +24,7 @@ jobs:
       - name: Clone FxA code repository
         uses: actions/checkout@v3
         with:
-          repository: "mozilla/fxa"
+          repository: "bcolsson/fxa"
           fetch-depth: 1
           path: "fxa-code"
       - name: Install npm packages
@@ -44,3 +44,15 @@ jobs:
             --content-repo ./packages/fxa-content-server \
             --settings-repo ./packages/fxa-settings \
             --l10n-repo ../fxa-l10n
+      - name: Commit changes and open pull request
+        run: |
+          # Only try to commit if there are pending changes
+          cd fxa-l10n
+          if [[ $(git diff --exit-code) || $(git ls-files --other --exclude-standard) ]]
+            # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
+            gh pr edit --add-reviewer mozilla/fxa-l10n
+          else
+            echo "No changes found."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.FXA_GITHUB_TOKEN }}
