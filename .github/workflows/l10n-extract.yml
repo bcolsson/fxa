@@ -52,9 +52,10 @@ jobs:
           then
             # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
             echo "Adding reviewer"
-            gh pr edit --add-reviewer bcolsson
+            gh pr edit $PR_NUMBER --add-reviewer bcolsson
           else
             echo "No changes found."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
