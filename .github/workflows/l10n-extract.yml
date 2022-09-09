@@ -49,6 +49,7 @@ jobs:
           # Only try to commit if there are pending changes
           cd fxa-l10n
           if [[ $(git diff --exit-code) || $(git ls-files --other --exclude-standard) ]]
+          then
             # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
             gh pr edit --add-reviewer bcolsson
           else
