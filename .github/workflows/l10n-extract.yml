@@ -51,7 +51,7 @@ jobs:
           if [[ $(git diff --exit-code) || $(git ls-files --other --exclude-standard) ]]
           then
             # Add mozilla/fxa-l10n as reviewer for pull request if .po file changes
-            cd fxa-code
+            cd ../fxa-code
             echo "Adding reviewer"
             gh pr edit $PR_NUMBER --add-reviewer bcolsson
           else
