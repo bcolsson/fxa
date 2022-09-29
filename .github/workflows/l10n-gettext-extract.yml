@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'packages/fxa-content-server/**'
+permissions:
+  contents: read
+  org: read
+  repository-projects: read
 jobs:
   extract:
     runs-on: ubuntu-latest
@@ -67,5 +71,5 @@ jobs:
             gh pr edit $PR_NUMBER --add-reviewer mozilla/fxa-l10n
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.FXA_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
