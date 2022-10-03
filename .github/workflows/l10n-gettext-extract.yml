@@ -46,6 +46,7 @@ jobs:
           NEW_HASHES=$(python ../fxa-l10n/scripts/pot_checksum.py ./packages/fxa-content-server/locale/templates/)
 
           # Checkout base commit
+          git fetch
           git checkout ${{ github.event.pull_request.base.sha }}
 
           # Extract gettext
