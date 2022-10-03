@@ -38,7 +38,7 @@ var AccountResetMixin = {
     var err = AuthErrors.toError('ACCOUNT_RESET');
 
     err.forceMessage =
-      t('Your account has been locked for security reasons') +
+      t('Your account has been locked for security reasonss') +
       '<br>' +
       '<a href="/confirm_reset_password">' +
       t('Reset password') +
