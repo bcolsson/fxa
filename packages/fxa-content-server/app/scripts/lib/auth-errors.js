@@ -315,6 +315,12 @@ var ERRORS = {
       'Complete account setup, please <a href="/reset_password">reset password</a> to continue.'
     ),
   },
+  UNABLE_TO_LOGIN_NO_PASSWORD_SET2: {
+    errno: 210,
+    message: t(
+      'This is a test.'
+    ),
+  },
   SERVICE_UNAVAILABLE: {
     errno: 998,
     message: t('System unavailable, try again soon'),
