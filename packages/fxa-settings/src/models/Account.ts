@@ -1,10 +1,11 @@
-import { gql, ApolloClient, Reference } from '@apollo/client';
+import { gql, ApolloClient, Reference, ApolloError } from '@apollo/client';
 import config from '../lib/config';
 import AuthClient, { generateRecoveryKey } from 'fxa-auth-client/browser';
 import { currentAccount, sessionToken } from '../lib/cache';
 import firefox from '../lib/firefox';
 import Storage from '../lib/storage';
 import random from '../lib/random';
+import { AuthUiErrorNos, AuthUiErrors } from '../lib/auth-errors/auth-errors';
 
 export interface DeviceLocation {
   city: string | null;
@@ -29,6 +30,10 @@ export interface SecurityEvent {
   name: string;
   createdAt: number;
   verified?: boolean;
+}
+
+export interface PasswordForgotSendCodePayload {
+  passwordForgotToken: string;
 }
 
 // TODO: why doesn't this match fxa-graphql-api/src/lib/resolvers/types/attachedClient.ts?
@@ -438,11 +443,91 @@ export class Account implements AccountData {
     });
   }
 
-  // TODO reset password function
-  resetPassword(email: string) {
-    // check if email is linked to existing account
-    // if account exists, send reset password link by email
-    // handle error - if email unknown, return "Unknown account" error with sign in link
+  async resetPassword(email: string): Promise<PasswordForgotSendCodePayload> {
+    try {
+      const result = await this.apolloClient.mutate({
+        mutation: gql`
+          mutation passwordForgotSendCode(
+            $input: PasswordForgotSendCodeInput!
+          ) {
+            passwordForgotSendCode(input: $input) {
+              passwordForgotToken
+            }
+          }
+        `,
+        variables: { input: { email } },
+      });
+
+      return result.data.passwordForgotSendCode;
+    } catch (err) {
+      const errno = (err as ApolloError).graphQLErrors[0].extensions?.errno;
+      if (errno && AuthUiErrorNos[errno]) {
+        throw AuthUiErrorNos[errno];
+      }
+      throw AuthUiErrors.UNEXPECTED_ERROR;
+    }
+  }
+
+  async resetPasswordStatus(passwordForgotToken: string): Promise<boolean> {
+    try {
+      await this.apolloClient.mutate({
+        mutation: gql`
+          mutation passwordForgotCodeStatus(
+            $input: PasswordForgotCodeStatusInput!
+          ) {
+            passwordForgotCodeStatus(input: $input) {
+              tries
+            }
+          }
+        `,
+        variables: { input: { token: passwordForgotToken } },
+      });
+
+      // If the request does not fail, that means that the token has not been
+      // consumed yet
+      return false;
+    } catch (err) {
+      const errno = (err as ApolloError).graphQLErrors[0].extensions?.errno;
+
+      // Invalid token means the user has completed reset password
+      if (errno === AuthUiErrors.INVALID_TOKEN.errno) {
+        return true;
+      }
+
+      // Throw all other errors
+      if (errno && AuthUiErrorNos[errno]) {
+        throw AuthUiErrorNos[errno];
+      }
+      throw AuthUiErrors.UNEXPECTED_ERROR;
+    }
+  }
+
+  async resendResetPassword(
+    email: string
+  ): Promise<PasswordForgotSendCodePayload> {
+    try {
+      const result = await this.apolloClient.mutate({
+        mutation: gql`
+          mutation passwordForgotSendCode(
+            $input: PasswordForgotSendCodeInput!
+          ) {
+            passwordForgotSendCode(input: $input) {
+              clientMutationId
+              passwordForgotToken
+            }
+          }
+        `,
+        variables: { input: { email } },
+      });
+
+      return result.data.passwordForgotSendCode;
+    } catch (err) {
+      const errno = (err as ApolloError).graphQLErrors[0].extensions?.errno;
+      if (errno && AuthUiErrorNos[errno]) {
+        throw AuthUiErrorNos[errno];
+      }
+      throw AuthUiErrors.UNEXPECTED_ERROR;
+    }
   }
 
   async setDisplayName(displayName: string) {

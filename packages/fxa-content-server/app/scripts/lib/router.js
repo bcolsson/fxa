@@ -44,7 +44,7 @@ import VerificationReasons from './verification-reasons';
 import WouldYouLikeToSync from '../views/would_you_like_to_sync';
 import { isAllowed } from 'fxa-shared/configuration/convict-format-allow-list';
 import ReactExperimentMixin from './generalized-react-app-experiment-mixin';
-import { getReactRouteGroups } from '../../../server/lib/routes/react-app';
+import { getClientReactRouteGroups } from '../../../server/lib/routes/react-app/route-groups-client';
 
 const NAVIGATE_AWAY_IN_MOBILE_DELAY_MS = 75;
 
@@ -110,10 +110,7 @@ let Router = Backbone.Router.extend({
     }
 
     this.storage = Storage.factory('sessionStorage', this.window);
-    this.reactRouteGroups = getReactRouteGroups(
-      this.config.showReactApp,
-      false
-    );
+    this.reactRouteGroups = getClientReactRouteGroups(this.config.showReactApp);
   },
 });
 
@@ -146,7 +143,12 @@ Router = Router.extend({
     'confirm(/)': createViewHandler(ConfirmView, {
       type: VerificationReasons.SIGN_UP,
     }),
-    'confirm_reset_password(/)': createViewHandler(ConfirmResetPasswordView),
+    'confirm_reset_password(/)': function () {
+      this.createReactOrBackboneViewHandler(
+        'confirm_reset_password',
+        ConfirmResetPasswordView
+      );
+    },
     'confirm_signin(/)': createViewHandler(ConfirmView, {
       type: VerificationReasons.SIGN_IN,
     }),
@@ -159,7 +161,7 @@ Router = Router.extend({
         {
           // HACK: this page uses the history API to navigate back and must go back one page
           // further if being redirected from content-server. Flow params are not always
-          // available to check against so we explicitely send in an additional param.
+          // available to check against, so we explicitly send in an additional param.
           contentRedirect: true,
         }
       );
@@ -167,9 +169,13 @@ Router = Router.extend({
     'force_auth(/)': createViewHandler(ForceAuthView),
     'inline_totp_setup(/)': createViewHandler(InlineTotpSetupView),
     'inline_recovery_setup(/)': createViewHandler(InlineRecoverySetupView),
-    'legal(/)': createViewHandler('legal'),
+    'legal(/)': function () {
+      this.createReactOrBackboneViewHandler('legal', 'legal');
+    },
     'legal/privacy(/)': createViewHandler('pp'),
-    'legal/terms(/)': createViewHandler('tos'),
+    'legal/terms(/)': function () {
+      this.createReactOrBackboneViewHandler('legal/terms', 'tos');
+    },
     'oauth(/)': createViewHandler(IndexView),
     'oauth/force_auth(/)': createViewHandler(ForceAuthView),
     'oauth/signin(/)': createViewHandler(SignInPasswordView),
@@ -249,19 +255,30 @@ Router = Router.extend({
       type: VerificationReasons.PRIMARY_EMAIL_VERIFIED,
     }),
     'report_signin(/)': createViewHandler(ReportSignInView),
-    'reset_password(/)': createViewHandler(ResetPasswordView),
+
+    'reset_password(/)': function () {
+      this.createReactOrBackboneViewHandler(
+        'reset_password',
+        ResetPasswordView
+      );
+    },
+
     'reset_password_confirmed(/)': createViewHandler(ReadyView, {
       type: VerificationReasons.PASSWORD_RESET,
     }),
     'reset_password_verified(/)': createViewHandler(ReadyView, {
       type: VerificationReasons.PASSWORD_RESET,
     }),
-    'reset_password_with_recovery_key_verified(/)': createViewHandler(
-      ReadyView,
-      {
-        type: VerificationReasons.PASSWORD_RESET_WITH_RECOVERY_KEY,
-      }
-    ),
+    'reset_password_with_recovery_key_verified(/)': function () {
+      this.createReactOrBackboneViewHandler(
+        'reset_password_with_recovery_key_verified',
+        ReadyView,
+        null,
+        {
+          type: VerificationReasons.PASSWORD_RESET_WITH_RECOVERY_KEY,
+        }
+      );
+    },
     'secondary_email_verified(/)': createViewHandler(ReadyView, {
       type: VerificationReasons.SECONDARY_EMAIL_VERIFIED,
     }),
@@ -349,7 +366,7 @@ Router = Router.extend({
     for (const routeGroup in this.reactRouteGroups) {
       if (
         this.reactRouteGroups[routeGroup].routes.find(
-          (route) => routeName === route.name
+          (route) => routeName === route
         )
       ) {
         return this.reactRouteGroups[routeGroup].featureFlagOn;

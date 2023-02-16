@@ -43,7 +43,7 @@ jobs:
           cd ../..
 
           # Get hash from PR commit.
-          NEW_HASHES=$(python ../fxa-l10n/scripts/pot_checksum.py ./packages/fxa-content-server/locale/templates/)
+          NEW_HASHES=$(python ../fxa-l10n/scripts/pot_checksum.py ./packages/fxa-content-server/locale/templates/LC_MESSAGES)
 
           # Checkout base commit
           git fetch origin ${{ github.event.pull_request.base.sha }}
@@ -51,11 +51,12 @@ jobs:
 
           # Extract gettext
           cd ./packages/fxa-content-server
+          rm /locale/templates/LC_MESSAGES/*
           npx grunt l10n-extract
           cd ../..
 
           # Get hash frome base commit
-          OLD_HASHES=$(python ../fxa-l10n/scripts/pot_checksum.py ./packages/fxa-content-server/locale/templates/)
+          OLD_HASHES=$(python ../fxa-l10n/scripts/pot_checksum.py ./packages/fxa-content-server/locale/templates/LC_MESSAGES)
 
           # Compare hashes
           if [ "$NEW_HASHES" = "$OLD_HASHES" ]

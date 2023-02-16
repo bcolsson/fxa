@@ -8,7 +8,7 @@ import { FtlMsg } from 'fxa-react/lib/utils';
 // import { useFtlMsgResolver } from '../../../models/hooks';
 import { usePageViewEvent } from '../../../lib/metrics';
 // import { useAlertBar } from '../../models';
-import { ReactComponent as TwoFactorImg } from './graphic_two_factor_auth.svg';
+import { TwoFactorAuthImage } from '../../../components/images';
 import CardHeader from '../../../components/CardHeader';
 import FormVerifyCode, {
   FormAttributes,
@@ -18,7 +18,10 @@ import { REACT_ENTRYPOINT } from '../../../constants';
 
 // --serviceName-- is the relying party
 
-export type SigninTotpCodeProps = { email: string; serviceName?: MozServices };
+export type SigninTotpCodeProps = {
+  email: string;
+  serviceName?: MozServices;
+};
 
 export const viewName = 'signin-totp-code';
 
@@ -33,6 +36,7 @@ const SigninTotpCode = ({
   // const alertBar = useAlertBar();
   // const ftlMsgResolver = useFtlMsgResolver();
 
+  // FTL strings in this view are reused in `Pair/AuthTotp` -- if we change them here but not there, we need to split those strings out.
   const formAttributes: FormAttributes = {
     inputFtlId: 'signin-totp-code-input-label-v2',
     inputLabelText: 'Enter 6-digit code',
@@ -77,13 +81,7 @@ const SigninTotpCode = ({
 
       <main>
         <div className="flex justify-center mx-auto">
-          <FtlMsg id="signin-totp-code-image-label" attrs={{ ariaLabel: true }}>
-            <TwoFactorImg
-              className="w-3/5"
-              role="img"
-              aria-label="A device with a hidden 6-digit code."
-            />
-          </FtlMsg>
+          <TwoFactorAuthImage className="w-3/5" />
         </div>
 
         <FtlMsg id="signin-totp-code-instruction">
@@ -105,7 +103,6 @@ const SigninTotpCode = ({
             setCodeErrorMessage,
           }}
         />
-
         <div className="mt-5 link-blue text-sm flex justify-between">
           <FtlMsg id="signin-totp-code-other-account-link">
             <Link to="/signin" className="text-start">

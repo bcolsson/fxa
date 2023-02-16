@@ -4,13 +4,18 @@
 
 import React from 'react';
 import { RouteComponentProps, Router } from '@reach/router';
-import Head from 'fxa-react/components/Head';
 import { ScrollToTop } from '../Settings/ScrollToTop';
 import Settings from '../Settings';
 import { QueryParams } from '../..';
 import CannotCreateAccount from '../../pages/CannotCreateAccount';
 import Clear from '../../pages/Clear';
 import CookiesDisabled from '../../pages/CookiesDisabled';
+import ResetPassword from '../../pages/ResetPassword';
+import ConfirmResetPassword from '../../pages/ResetPassword/ConfirmResetPassword';
+import ResetPasswordWithRecoveryKeyVerified from '../../pages/ResetPassword/ResetPasswordWithRecoveryKeyVerified';
+import Legal from '../../pages/Legal';
+import LegalTerms from '../../pages/Legal/Terms';
+import LegalPrivacy from '../../pages/Legal/Privacy';
 
 export const App = ({
   flowQueryParams,
@@ -19,7 +24,6 @@ export const App = ({
 
   return (
     <>
-      <Head />
       <Router basepath={'/'}>
         <ScrollToTop default>
           {/* We probably don't need a guard here with `showReactApp` or a feature flag/config
@@ -30,9 +34,16 @@ export const App = ({
               <CannotCreateAccount path="/cannot_create_account/*" />
               <Clear path="/clear/*" />
               <CookiesDisabled path="/cookies_disabled/*" />
+              <ResetPassword path="/reset_password/*" />
+              <ConfirmResetPassword path="/confirm_reset_password/*" />
+              <ResetPasswordWithRecoveryKeyVerified path="/reset_password_with_recovery_key_verified/*" />
+              <Legal path="/legal/*" />
+              <LegalTerms path="/legal/terms/*" />
+              <LegalTerms path="/:locale/legal/terms/*" />
+              <LegalPrivacy path="/legal/privacy/*" />
+              <LegalPrivacy path="/:locale/legal/privacy/*" />
             </>
           )}
-
           <Settings path="/settings/*" {...{ flowQueryParams }} />
         </ScrollToTop>
       </Router>

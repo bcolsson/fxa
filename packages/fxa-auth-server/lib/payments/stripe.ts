@@ -69,7 +69,7 @@ import {
   formatMetadataValidationErrorMessage,
   reportValidationError,
 } from '../sentry';
-import { AppConfig, AuthFirestore, AuthLogger } from '../types';
+import { AppConfig, AuthFirestore, AuthLogger, TaxAddress } from '../types';
 import { PaymentConfigManager } from './configuration/manager';
 import { CurrencyHelper } from './currencies';
 import { AppStoreSubscriptionPurchase } from './iap/apple-app-store/subscription-purchase';
@@ -349,6 +349,10 @@ export class StripeHelper extends StripeHelperBase {
 
     const subUpdates = customer.subscriptions.data
       .filter((sub) => {
+        // If subscription automatic_tax enabled, do not set tax rates
+        if (sub.automatic_tax) {
+          return false;
+        }
         const subTaxRates = new Set(
           (sub.default_tax_rates ?? []).map((tr) => tr.id)
         );
@@ -365,20 +369,35 @@ export class StripeHelper extends StripeHelperBase {
   /**
    * Create a stripe customer.
    */
-  async createPlainCustomer(
-    uid: string,
-    email: string,
-    displayName: string,
-    idempotencyKey: string,
-    ipAddress?: string
-  ): Promise<Stripe.Customer> {
+  async createPlainCustomer(args: {
+    uid: string;
+    email: string;
+    displayName: string;
+    idempotencyKey: string;
+    taxAddress?: TaxAddress;
+  }): Promise<Stripe.Customer> {
+    const { uid, email, displayName, idempotencyKey, taxAddress } = args;
+
+    const shipping = taxAddress
+      ? {
+          name: email,
+          address: {
+            country: taxAddress.countryCode,
+            postal_code: taxAddress.postalCode,
+          },
+        }
+      : undefined;
+
     const stripeCustomer = await this.stripe.customers.create(
       {
         email,
         name: displayName,
         description: uid,
-        metadata: { userid: uid },
-        ...{ tax: { ip_address: ipAddress } },
+        metadata: {
+          userid: uid,
+          geoip_date: new Date().toString(),
+        },
+        shipping,
       },
       {
         idempotency_key: idempotencyKey,
@@ -657,15 +676,15 @@ export class StripeHelper extends StripeHelperBase {
   async previewInvoice({
     automaticTax,
     country,
-    ipAddress,
     priceId,
     promotionCode,
+    taxAddress,
   }: {
     automaticTax: boolean;
     country: string;
-    ipAddress: string;
     priceId: string;
     promotionCode?: string;
+    taxAddress?: TaxAddress;
   }) {
     const params: Stripe.InvoiceRetrieveUpcomingParams = {};
 
@@ -680,15 +699,24 @@ export class StripeHelper extends StripeHelperBase {
     }
 
     if (automaticTax) {
+      const shipping = taxAddress
+        ? {
+            name: '',
+            address: {
+              country: taxAddress.countryCode,
+              postal_code: taxAddress.postalCode,
+            },
+          }
+        : undefined;
+
       try {
         return await this.stripe.invoices.retrieveUpcoming({
           automatic_tax: {
             enabled: true,
           },
           customer_details: {
-            tax: {
-              ip_address: ipAddress,
-            },
+            tax_exempt: 'none', // Param required when shipping address not present
+            shipping,
           },
           subscription_items: [
             {
@@ -700,7 +728,8 @@ export class StripeHelper extends StripeHelperBase {
         });
       } catch (e: any) {
         this.log.warn('stripe.previewInvoice.automatic_tax', {
-          ipAddress,
+          postalCode: taxAddress?.postalCode,
+          countryCode: taxAddress?.countryCode,
           priceId,
           promotionCode,
         });
@@ -952,15 +981,15 @@ export class StripeHelper extends StripeHelperBase {
   async retrieveCouponDetails({
     automaticTax,
     country,
-    ipAddress,
     priceId,
     promotionCode,
+    taxAddress,
   }: {
     automaticTax: boolean;
     country: string;
-    ipAddress: string;
     priceId: string;
     promotionCode: string;
+    taxAddress?: TaxAddress;
   }): Promise<Coupon.couponDetailsSchema> {
     const stripePromotionCode = await this.retrievePromotionCodeForPlan(
       promotionCode,
@@ -990,9 +1019,9 @@ export class StripeHelper extends StripeHelperBase {
             await this.previewInvoice({
               automaticTax,
               country,
-              ipAddress,
               priceId,
               promotionCode,
+              taxAddress,
             });
 
           const minAmount = getMinimumAmount(currency);
@@ -1319,12 +1348,10 @@ export class StripeHelper extends StripeHelperBase {
     customerId,
     options,
     name,
-    ipAddress,
   }: {
     customerId: string;
     options?: BillingAddressOptions;
     name?: string;
-    ipAddress?: string;
   }): Promise<Stripe.Customer> {
     const updates: Stripe.CustomerUpdateParams = { expand: ['tax'] };
     if (options) {
@@ -1339,9 +1366,6 @@ export class StripeHelper extends StripeHelperBase {
     }
     if (name) {
       updates.name = name;
-    }
-    if (ipAddress) {
-      updates.tax = { ip_address: ipAddress };
     }
     const customer = await this.stripe.customers.update(customerId, updates);
     // Pull out tax as we don't want to cache that inconsistently.
@@ -2840,6 +2864,12 @@ export class StripeHelper extends StripeHelperBase {
         }
       : null;
 
+    const previousLatestInvoice: string = previousAttributes.latest_invoice;
+    const invoiceOld: Stripe.Invoice = await this.getInvoice(
+      previousLatestInvoice
+    );
+    const invoiceTotalOldInCents = invoiceOld.total;
+
     const planIdNew = planNew.id;
 
     const cancelAtPeriodEndNew = subscription.cancel_at_period_end;
@@ -2901,6 +2931,7 @@ export class StripeHelper extends StripeHelperBase {
       paymentAmountNewCurrency,
       productPaymentCycleNew,
       closeDate: event.created,
+      invoiceTotalOldInCents,
       productMetadata: productNewMetadata,
       planConfig,
     };
@@ -3113,6 +3144,7 @@ export class StripeHelper extends StripeHelperBase {
       id: invoiceId,
       number: invoiceNumber,
       currency: paymentProratedCurrency,
+      total: invoiceTotalNewInCents,
     } = invoice;
 
     // Using stripes default proration behaviour
@@ -3161,6 +3193,7 @@ export class StripeHelper extends StripeHelperBase {
       paymentAmountOldCurrency,
       invoiceNumber,
       invoiceId,
+      invoiceTotalNewInCents,
       paymentProratedInCents: onetimePaymentAmount,
       paymentProratedCurrency,
     };

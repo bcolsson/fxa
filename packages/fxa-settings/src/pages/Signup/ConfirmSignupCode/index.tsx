@@ -8,11 +8,12 @@ import { FtlMsg } from 'fxa-react/lib/utils';
 import { useFtlMsgResolver } from '../../../models/hooks';
 import { usePageViewEvent } from '../../../lib/metrics';
 // import { useAlertBar } from '../../models';
-import { ReactComponent as MailImg } from './graphic_mail.svg';
 import FormVerifyCode, {
   FormAttributes,
 } from '../../../components/FormVerifyCode';
 import { REACT_ENTRYPOINT } from '../../../constants';
+import { MailImage } from '../../../components/images';
+import CardHeader from '../../../components/CardHeader';
 
 // email will eventually be obtained from account context
 export type ConfirmSignupCodeProps = { email: string };
@@ -77,21 +78,17 @@ const ConfirmSignupCode = ({
     //       if the account exists, notify that the account has been blocked
     //       and provide correct support link
     <>
-      <header>
-        <FtlMsg id="confirm-signup-code-heading">
-          <h1 className="card-header">
-            Enter confirmation code
-            <span className="card-subheader"> for your Firefox account</span>
-          </h1>
-        </FtlMsg>
-      </header>
+      <CardHeader
+        headingText="Enter confirmation code"
+        headingAndSubheadingFtlId="confirm-signup-code-heading"
+      />
 
       <main>
         <div className="flex justify-center mx-auto">
-          <MailImg className="w-3/5" role="img" />
+          <MailImage className="w-3/5" />
         </div>
 
-        <FtlMsg id="confirm-signup-code-instruction">
+        <FtlMsg id="confirm-signup-code-instruction" vars={{ email }}>
           <p className="m-5 text-sm">
             Enter the code that was sent to {email} within 5 minutes.
           </p>

@@ -514,17 +514,12 @@ export default class AuthClient {
     );
   }
 
-  async passwordForgotStatus(
-    passwordForgotToken: string,
-    headers: Headers = new Headers()
-  ) {
+  async passwordForgotStatus(passwordForgotToken: string) {
     return this.hawkRequest(
       'GET',
       '/password/forgot/status',
       passwordForgotToken,
-      tokenType.passwordForgotToken,
-      undefined,
-      headers
+      tokenType.passwordForgotToken
     );
   }
 
@@ -1412,6 +1407,10 @@ export default class AuthClient {
       payload.expiry_grace_period = expiryGracePeriod;
     }
     return this.request('POST', '/oauth/id-token-verify', payload);
+  }
+
+  async getProductInfo(productId: string) {
+    return this.request('GET', `/oauth/subscriptions/productname?productId=${productId}`)
   }
 
   async sendPushLoginRequest(sessionToken: string) {

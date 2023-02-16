@@ -10,6 +10,7 @@ import { FtlMsg } from 'fxa-react/lib/utils';
 import { useFtlMsgResolver } from '../../../models/hooks';
 import LinkExternal from 'fxa-react/components/LinkExternal';
 import { REACT_ENTRYPOINT } from '../../../constants';
+import CardHeader from '../../../components/CardHeader';
 
 export type SigninBouncedProps = {
   onBackButtonClick?: (
@@ -41,25 +42,34 @@ const SigninBounced = ({
 
   return (
     <>
-      <div className="mb-4">
-        <FtlMsg id="signin-bounced-header">
-          <h1 className="card-header">
-            Sorry. We’ve locked your{'\u00A0'}account.
-          </h1>
-        </FtlMsg>
-      </div>
+      <CardHeader
+        headingText="Sorry. We’ve locked your account."
+        headingTextFtlId="signin-bounced-header"
+      />
       <section>
         <div className="flex justify-center mx-auto">
           <EmailBounced className="w-3/5" role="img" />
         </div>
-        <FtlMsg id="signin-bounced-message" vars={{ email: email }}>
+        <FtlMsg id="signin-bounced-message" vars={{ email }}>
           <p className="text-sm mb-6">
             The confirmation email we sent to {email} was returned and we’ve
             locked your account to protect your Firefox data.
           </p>
         </FtlMsg>
 
-        <FtlMsg id="signin-bounced-help">
+        <FtlMsg
+          id="signin-bounced-help"
+          elems={{
+            linkExternal: (
+              <LinkExternal
+                className="link-blue"
+                href="https://support.mozilla.org/"
+              >
+                let us know
+              </LinkExternal>
+            ),
+          }}
+        >
           <p className="text-sm mb-6 text-grey-400">
             If this is a valid email address,{' '}
             <LinkExternal

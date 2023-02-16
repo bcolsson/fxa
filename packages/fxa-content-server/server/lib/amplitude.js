@@ -461,6 +461,14 @@ const EVENTS = {
     group: GROUPS.connectDevice,
     event: 'pair_submit',
   },
+  'screen.pair.supp': {
+    group: GROUPS.connectDevice,
+    event: 'pair_supp_view',
+  },
+  'screen.pair.auth.totp': {
+    group: GROUPS.connectDevice,
+    event: 'view',
+  },
   'pair.submit': {
     group: GROUPS.connectDevice,
     event: 'pair_submit',
@@ -491,6 +499,15 @@ const EVENTS = {
     group: GROUPS.qrConnectDevice,
     event: 'wait_for_supp',
   },
+  'screen.pair.supp.allow': {
+    group: GROUPS.qrConnectDevice,
+    event: 'supp_allow_view',
+  },
+  // the screen displayed if the pairing supplicant approved first
+  'screen.pair.supp.wait-for-auth': {
+    group: GROUPS.qrConnectDevice,
+    event: 'wait_for_auth',
+  },
   'screen.pair.auth.complete': {
     group: GROUPS.qrConnectDevice,
     event: 'complete',
@@ -499,7 +516,6 @@ const EVENTS = {
     group: GROUPS.qrConnectDevice,
     event: 'fx_view_engage',
   },
-
   'cad.notnow.engage': {
     group: GROUPS.connectDevice,
     event: 'cad_notnow_engage',

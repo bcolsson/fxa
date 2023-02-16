@@ -9,7 +9,7 @@ import { MozServices } from '../../lib/types';
 import { FtlMsg } from 'fxa-react/lib/utils';
 import { useFtlMsgResolver } from '../../models';
 import { usePageViewEvent } from '../../lib/metrics';
-import { ReactComponent as TwoFactorImg } from '../Signin/SigninTotpCode/graphic_two_factor_auth.svg';
+import { TwoFactorAuthImage } from '../../components/images';
 import CardHeader from '../../components/CardHeader';
 import LinkExternal from 'fxa-react/components/LinkExternal';
 import FormVerifyCode from '../../components/FormVerifyCode';
@@ -44,10 +44,6 @@ export const InlineTotpSetup = ({
     'tfa-qr-code-alt',
     `Use the code ${code} to set up two-step authentication in supported applications.`,
     { code }
-  );
-  const localizedTwoFactorImgAriaLabel = ftlMsgResolver.getMsg(
-    'signin-totp-code-image-label',
-    'A device with a hidden 6-digit code.'
   );
   const [secret, setSecret] = useState<string>();
   const [qrCodeSrc, setQRCodeSrc] = useState<string>();
@@ -94,16 +90,12 @@ export const InlineTotpSetup = ({
         <>
           <CardHeader
             headingText="Enable two-step authentication"
-            headingWithCustomServiceFtlId="inline-totp-setup-enable-two-step-authentication-custom-header"
-            headingWithDefaultServiceFtlId="inline-totp-setup-enable-two-step-authentication-default-header"
+            headingWithCustomServiceFtlId="inline-totp-setup-enable-two-step-authentication-custom-header-2"
+            headingWithDefaultServiceFtlId="inline-totp-setup-enable-two-step-authentication-default-header-2"
             {...{ serviceName }}
           />
           <section className="flex flex-col items-center">
-            <TwoFactorImg
-              className="w-1/2"
-              role="img"
-              aria-label={localizedTwoFactorImgAriaLabel}
-            />
+            <TwoFactorAuthImage className="w-1/2" />
             <FtlMsg
               id="inline-totp-setup-add-security-link"
               elems={{
@@ -152,15 +144,15 @@ export const InlineTotpSetup = ({
           {showQR ? (
             <CardHeader
               headingText="Scan authentication code"
-              headingWithCustomServiceFtlId="inline-totp-setup-show-qr-custom-service-header"
-              headingWithDefaultServiceFtlId="inline-totp-setup-show-qr-default-service-header"
+              headingWithCustomServiceFtlId="inline-totp-setup-show-qr-custom-service-header-2"
+              headingWithDefaultServiceFtlId="inline-totp-setup-show-qr-default-service-header-2"
               {...{ serviceName }}
             />
           ) : (
             <CardHeader
               headingText="Enter code manually"
-              headingWithCustomServiceFtlId="inline-totp-setup-no-qr-custom-service-header"
-              headingWithDefaultServiceFtlId="inline-totp-setup-no-qr-default-service-header"
+              headingWithCustomServiceFtlId="inline-totp-setup-no-qr-custom-service-header-2"
+              headingWithDefaultServiceFtlId="inline-totp-setup-no-qr-default-service-header-2"
               {...{ serviceName }}
             />
           )}
