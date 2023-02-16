@@ -318,7 +318,7 @@ var ERRORS = {
   UNABLE_TO_LOGIN_NO_PASSWORD_SET2: {
     errno: 210,
     message: t(
-      'This is a test.'
+      'This is a test. Second time.'
     ),
   },
   SERVICE_UNAVAILABLE: {
